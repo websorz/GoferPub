@@ -1,45 +1,26 @@
-package streamapp
+package TopicListener
 
 import (
-	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"log"
-	"runtime"
-	"streamservice/gokafkan/pkg/domain"
+	"context"
+	"fmt"
+	"github.com/segmentio/kafka-go"
+	"os"
 )
 
-func StartConsumerListening(consumer consumer.Consumer) {
-	//topics we want to subscribe to - in this instance logs
+func ListenOn(reader kafka.Reader) {
+	defer reader.Close()
+	// Define a context to control the consumer
+	ctx := context.Background()
 
-	runtime.Breakpoint()
-
-	// Create consumer instance (end users that retrieve data from kafka server)
-	c, err := kafka.NewConsumer(&kafka.ConfigMap{
-		// "bootstrap-servers": consumer.BootstrapServer,
-		"group.id":          consumer.ConsumerGroup,
-		"auto.offset.reset": consumer.Offset,
-	})
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	//Close consumer instance when done
-	defer c.Close()
-
-	if err := c.SubscribeTopics(consumer.Topics, nil); err != nil {
-		log.Fatal(err)
-	}
-
-	//Start listening for new messages in subscribed stream
 	for {
-		msg, err := c.ReadMessage(-1)
-
+		// Read messages from the topic
+		m, err := reader.ReadMessage(ctx)
 		if err != nil {
-			log.Printf(string(msg.Value))
-		} else {
-			log.Printf("%s", err)
+			fmt.Println("Error reading message:", err)
+			os.Exit(1)
 		}
 
+		// Print the message
+		fmt.Printf("message at topic/partition/offset %v/%v/%v: %s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 	}
-
 }

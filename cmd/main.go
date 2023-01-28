@@ -2,14 +2,19 @@ package main
 
 import (
 	"fmt"
-	"streamservice/gokafkan/pkg/domain"
+	"github.com/segmentio/kafka-go"
 	"streamservice/gokafkan/pkg/topicListeners"
 )
 
 func main() {
-	//Parse config
-	consumer := consumer.Consumer{BootstrapServer: "localhost:9092", ConsumerGroup: "log-consumer-group", Offset: "earliest", Topics: []string{"logs"}}
+	reader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:   []string{"localhost:9092"},
+		GroupID:   "log-consumer-group",
+		Topic:     "logs",
+		Partition: 0,
+		MinBytes:  10e3, // 10KB
+		MaxBytes:  10e6, // 10MB
+	})
 	fmt.Printf("Starting listening")
-	//Start listening concurrently
-	streamapp.StartConsumerListening(consumer)
+	TopicListener.ListenOn(*reader)
 }
