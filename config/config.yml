@@ -1,0 +1,12 @@
+zookeeper:
+  -connect: "zookeeper:2181"
+  adviertised_listeners:  "PLAINTEXT://kafka:9092"
+
+
+consumers:
+  -consumer:
+    -name: "name"
+    topic: "logs"
+    bootstrap-servers: "localhost:9092"
+    group.d: "log-consumer-group"
+    auto.offset.reset: "earliest"
